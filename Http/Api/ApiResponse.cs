@@ -61,6 +61,20 @@ namespace MinimalApiClient.Http.Api
         }
 
         /// <summary>
+        /// Returns the Content as Stream in the Type of T.
+        /// </summary>
+        /// <typeparam name="T">The Stream Type.</typeparam>
+        /// <returns>he Content of the Response as type T.</returns>
+        public async Task<T> GetContentAsStream<T>() where T : Stream, new()
+        {
+            var stream = new T();
+
+            await _content.CopyToAsync(stream);
+
+            return stream;
+        }
+
+        /// <summary>
         /// Asynchronously reads the response content stream and returns it as a string.
         /// </summary>
         /// <returns>Content of the response as a UTF-8 string.</returns>

@@ -14,6 +14,9 @@
     <Copyright>2024</Copyright>
     <Description>A Simple API Client to make asynchronous  API-Calls with CRUD-Operation and Basic and Bearer Authentification.</Description>
     <PackageTags>api;webclient;rest;http;</PackageTags>
+    <FileVersion>1.0.0.1</FileVersion>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

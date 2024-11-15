@@ -3,11 +3,11 @@
 A simple, flexible API client built for small projects using `C#`. This client allows you to make HTTP requests with various HTTP methods (GET, POST, PUT, PATCH, DELETE) and supports Basic and Bearer token authentication. It can handle JSON requests and responses, making it easy to integrate with RESTful APIs.
 
 ## Note
-This Project is should only be used in personal project. I Do not recommand in any circumstances to use this is a production enviroment at all.
+This Project should only be used in personal project. I Do not recommand in any circumstances to use this in a production enviroment at all.
 ## Features
 
 - **Supports all common HTTP methods**: GET, POST, PUT, PATCH, DELETE
-- **Flexible request types**: Json, FormData, and more
+- **Flexible request types**: Json, Binary, FormData, and more
 - **Simple authentication setup**: Supports Basic and Bearer tokens
 - **Event handling** for sending requests and receiving responses
 - **JSON deserialization** of responses for easy data handling
@@ -15,10 +15,10 @@ This Project is should only be used in personal project. I Do not recommand in a
 ## Installation
 
 To use this API client in your project, add it as a reference and include the necessary namespaces:
-
+```csharp
 using MinimalApiClient.Http.Api;  
 using Newtonsoft.Json.Linq;
-
+```
 ## Usage
 
 ### 1. Create an ApiClient instance

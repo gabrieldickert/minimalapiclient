@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MinimalApiClient.Http.Api
 {
@@ -34,9 +37,9 @@ namespace MinimalApiClient.Http.Api
             }
 
             // Use `using` blocks to ensure proper disposal of streams after reading.
-            await using (_content)
+            using (_content)
             {
-                await using (var memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream())
                 {
                     // Copy the content to a memory stream to work with it as a byte array.
                     await _content.CopyToAsync(memoryStream);
@@ -53,7 +56,7 @@ namespace MinimalApiClient.Http.Api
                     catch (Exception ex)
                     {
                         // Wrap and throw an exception if deserialization fails, with information about the target type.
-                        throw new Exception("Could not deserialize Response Content to object of type: " + typeof(T).ToString()+""+jsonString, ex.InnerException);
+                        throw new Exception("Could not deserialize Response Content to object of type: " + typeof(T).ToString() + "" + jsonString, ex.InnerException);
                     }
                 }
             }

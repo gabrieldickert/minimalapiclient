@@ -1,4 +1,6 @@
 ﻿using System.Drawing;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace MinimalApiClient.Http.Api
 {

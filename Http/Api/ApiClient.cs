@@ -1,4 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿
+using System;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace MinimalApiClient.Http.Api
 {
@@ -290,12 +294,6 @@ namespace MinimalApiClient.Http.Api
                         case System.Net.HttpStatusCode.RequestTimeout:
 
                             apiResponseStatusCode = ApiResponse.HttpStatusCodes.RequestTimeout;
-
-                            break;
-
-                        case System.Net.HttpStatusCode.TooManyRequests:
-
-                            apiResponseStatusCode = ApiResponse.HttpStatusCodes.TooManyRequests;
 
                             break;
 

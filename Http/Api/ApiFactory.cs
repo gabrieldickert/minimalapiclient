@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using static MinimalApiClient.Http.Api.ApiRequest;
 
 namespace MinimalApiClient.Http.Api

@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MinimalApiClient.Http.Api
 {
@@ -88,10 +91,10 @@ namespace MinimalApiClient.Http.Api
             }
 
             // Use a `using` block to ensure the stream is properly disposed after reading.
-            await using (_content)
+            using (_content)
             {
                 // Copy content to a memory stream to enable encoding and return as a string.
-                await using (var memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream())
                 {
                     await _content.CopyToAsync(memoryStream);
                     byte[] data = memoryStream.ToArray();

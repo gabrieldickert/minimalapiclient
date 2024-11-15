@@ -1,6 +1,7 @@
 # MinimalApiClient
 
 A simple, flexible API client built for small projects using `C#`. This client allows you to make HTTP requests with various HTTP methods (GET, POST, PUT, PATCH, DELETE) and supports Basic and Bearer token authentication. It can handle JSON requests and responses, making it easy to integrate with RESTful APIs.
+Furthermore it can handle Binary and Image Responses.
 
 ## Note
 This Project should only be used in personal project. I Do not recommand in any circumstances to use this in a production enviroment at all.
@@ -11,6 +12,8 @@ This Project should only be used in personal project. I Do not recommand in any 
 - **Simple authentication setup**: Supports Basic and Bearer tokens
 - **Event handling** for sending requests and receiving responses
 - **JSON deserialization** of responses for easy data handling
+- ** Image Retrieving of responses for easy image handling.
+
 
 ## Installation
 
@@ -18,6 +21,8 @@ To use this API client in your project, add it as a reference and include the ne
 ```csharp
 using MinimalApiClient.Http.Api;  
 using Newtonsoft.Json.Linq;
+#optional
+using System.Drawing;
 ```
 ## Usage
 
@@ -110,13 +115,25 @@ reqDelete.SetUriParameters(new object[] { resultPatch["id"] });
 var resultDelete = await client.Execute<JsonApiResponse>(reqDelete).Result.GetJsonFromContentAsync<JObject>();  
 Console.WriteLine(resultDelete);
 ```
+#### Image Request
+
+You can retrieve an Image from an Api as following:
+```csharp
+var imageReq = new ApiRequest("/id/{0}/2758/3622", ApiRequest.HttpMethod.Get, ApiRequest.ApiRequestType.Binary);
+imageReq.SetUriParameters(new object[] { 35 });
+var imageResult = await client.Execute<ImageResponse>(imageReq).Result.GetImage();
+imageResult.Save("result.png");
+```
 ## Class Overview
 
 ### ApiRequest
 Handles HTTP requests and includes methods to set headers, body content, and URI parameters. Supports different request types and HTTP methods.
 
-### ApiResponse & JsonApiResponse
-Represents responses, with `JsonApiResponse` specifically providing JSON deserialization to the specified data type.
+### ApiResponse, JsonApiResponse & ImageResponse
+Every Response inherits from ApiResponse. Currently there are three responses defined:
+1.  `ApiResponse` providing basic methods like `GetContentAsStringAsync()`.
+2. `JsonApiResponse` specifically providing JSON deserialization to the specified data type.
+3. `ImageResponse` specifically providing Image deserialization.
 
 ### ApiAuthentication
 Manages API authentication and currently supports Basic and Bearer token authentication types.

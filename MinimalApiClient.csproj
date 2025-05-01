@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net8.0;net4.8.1</TargetFrameworks>
+    <TargetFrameworks>net7.0;net8.0;net4.7;net4.8.1;net4.8;net4.6</TargetFrameworks>
     <ImplicitUsings>disable</ImplicitUsings>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>MinimalApiClient</Title>
@@ -13,20 +13,34 @@
     <Copyright>2024</Copyright>
     <Description>A Simple API Client to make asynchronous API-Calls with CRUD-Operation and Basic and Bearer Authentification.</Description>
     <PackageTags>api;webclient;rest;http;</PackageTags>
-    <FileVersion>1.0.0.2</FileVersion>
-    <AssemblyVersion>1.0.0.2</AssemblyVersion>
-    <Version>1.0.2</Version>
+    <FileVersion>1.0.0.3</FileVersion>
+    <AssemblyVersion>1.0.0.3</AssemblyVersion>
+    <Version>1.0.3</Version>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net4.8.1'">
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net4.8'">
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net4.7'">
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net4.6'">
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 

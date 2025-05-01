@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -50,7 +49,7 @@ namespace MinimalApiClient.Http.Api
 
         #endregion Fields
 
-        #region Constructor
+        #region Constructors
 
         /// <summary>
         /// Creates a new Api Client.
@@ -92,7 +91,19 @@ namespace MinimalApiClient.Http.Api
             }
         }
 
-        #endregion Constructor
+        /// <summary>
+        /// Creates a new Api Client.
+        /// </summary>
+        /// <param name="baseUrl">The base Url of the Client.</param>
+        /// <param name="client">Instance of an HttpClient.</param>
+        public ApiClient(string baseUrl, HttpClient client)
+        {
+            BaseUrl = baseUrl;
+
+            _client = client;
+        }
+
+        #endregion Constructors
 
         #region Methods
 

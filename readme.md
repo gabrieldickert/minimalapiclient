@@ -1,23 +1,35 @@
 # MinimalApiClient
 
-A simple, flexible API client built for small projects using `C#`. This client allows you to make HTTP requests with various HTTP methods (GET, POST, PUT, PATCH, DELETE) and supports Basic and Bearer token authentication. It can handle JSON requests and responses, making it easy to integrate with RESTful APIs.
-Furthermore it can handle Binary and Image Responses.
+A simple, flexible API client built for small projects using `C#`. This client allows you to make HTTP requests with various HTTP methods and supports Basic and Bearer token authentication. It can handle various request and response types, including JSON, Binary, and Images, making it easy to integrate with RESTful APIs.
 
 ## Note
-This Project should only be used in personal project. I Do not recommand in any circumstances to use this in a production enviroment at all.
+
+This Project should only be used in personal projects. I Do not recommend in any circumstances to use this in a production environment at all.
+
 ## Features
 
-- **Supports all common HTTP methods**: GET, POST, PUT, PATCH, DELETE
-- **Flexible request types**: Json, Binary, FormData, and more
-- **Simple authentication setup**: Supports Basic and Bearer tokens
-- **Event handling** for sending requests and receiving responses
-- **JSON deserialization** of responses for easy data handling
-- ** Image Retrieving of responses for easy image handling.
+* **Supports common HTTP methods**: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD.
 
+* **Flexible request and response types**: PlainText, Json, Xml, FormData, MultiPartFormData, Binary, ImagePng, ImageJpeg, HTML.
+
+* **Simple authentication setup**: Supports Basic and Bearer tokens.
+
+* **Event handling** for sending requests and receiving responses.
+
+* **JSON deserialization** of responses to specified types.
+
+* **Image retrieval** from binary responses.
+
+* **Dynamic URI parameters** using wildcard markers.
 
 ## Installation
 
 To use this API client in your project, add it as a reference and include the necessary namespaces:
+
+```csharp
+using MinimalApiClient.Http.Api;
+using Newtonsoft.Json.Linq; // For JSON handling
+using System.Drawing; // Optional, for ImageResponse
 ```csharp
 using MinimalApiClient.Http.Api;  
 using Newtonsoft.Json.Linq;
@@ -33,7 +45,20 @@ Initialize the `ApiClient` with the base URL of your API:
 ApiClient client = new ApiClient("https://jsonplaceholder.typicode.com/");
 ```
 
-### 2. Example - Define a Bearer Token Request
+You can also initialize with authentication:
+```csharp
+// Example with Basic Authentication
+var basicAuthHeader = new ApiAuthenticationHeader(ApiAuthenticationHeader.PredefinedAuthenticationTypes.Basic, "your_username:your_password");
+ApiClient clientWithBasicAuth = new ApiClient("[https://api.example.com/](https://api.example.com/)", new ApiAuthentication(basicAuthHeader));
+
+// Example with Bearer Authentication (token obtained separately)
+var bearerAuthHeader = new ApiAuthenticationHeader(ApiAuthenticationHeader.PredefinedAuthenticationTypes.Bearer, "your_access_token");
+ApiClient clientWithBearerAuth = new ApiClient("[https://api.example.com/](https://api.example.com/)", new ApiAuthentication(bearerAuthHeader));
+```
+
+
+
+### 2. Example - Obtain and Use a Bearer Token
 ```csharp
 var bearerTokenRequest = new ApiRequest("/oauth/token", ApiRequest.HttpMethod.Post, ApiRequest.ApiRequestType.Json);
 ```
@@ -52,68 +77,109 @@ Assign the body to the request:
 ```csharp
 bearerTokenRequest.SetBody(body.ToString());
 ```
-Send the request to obtain the bearer token:
+Send the request to obtain the bearer token (using await for asynchronous operation):
 ```csharp
-var bearerTokenJson = await client.Execute<JsonApiResponse>(bearerTokenRequest).Result.GetJsonFromContentAsync<JObject>();
+JsonApiResponse tokenResponse = await client.Execute<JsonApiResponse>(bearerTokenRequest);
+JObject bearerTokenJson = await tokenResponse.GetJsonFromContentAsync<JObject>();
 ```
-Extract and set the access token:
+Extract the access token and enable authentication on the client:
 ```csharp
-var accessToken = bearerTokenJson["access_token"].Value<string>();  
-client.EnableAuthentification(new ApiAuthentication(ApiAuthentication.AuthenticationTypes.Bearer, accessToken));
+var accessToken = bearerTokenJson["access_token"].Value<string>();
+client.EnableAuthentification(new ApiAuthentication(ApiAuthenticationHeader.PredefinedAuthenticationTypes.Bearer, accessToken));
 ```
 ### 3. Basic CRUD Operations
 
-Once authenticated, you can proceed with common CRUD operations:
+Once authenticated (if required), you can proceed with common CRUD operations:
 
 #### GET Request
 
 Retrieve a specific resource using GET:
 ```csharp
-var reqGet = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Get, ApiRequest.ApiRequestType.Json);  
-reqGet.SetUriParameters(new object[] { 35 });  
-var resultGet = await client.Execute<JsonApiResponse>(reqGet).Result.GetJsonFromContentAsync<JObject>();  
+// Endpoint with a wildcard {0}
+var reqGet = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Get, ApiRequest.ApiRequestType.Json);
+// Set the parameter value (replaces {0})
+reqGet.SetUriParameters(new object[] { 35 });
+JsonApiResponse resultGetResponse = await client.Execute<JsonApiResponse>(reqGet);
+JObject resultGet = await resultGetResponse.GetJsonFromContentAsync<JObject>();
 Console.WriteLine($"GET Result:\n{resultGet.ToString(Newtonsoft.Json.Formatting.Indented)}");
 ```
 #### POST Request
 
 Create a new resource using POST:
 ```csharp
-var reqPost = new ApiRequest("todos/", ApiRequest.HttpMethod.Post, ApiRequest.ApiRequestType.Json);  
-var reqPostBody = new JObject() { ["title"] = "minimalApi", ["body"] = "MinimalApiTest", ["userId"] = resultGet["userId"] };  
-reqPost.SetBody(reqPostBody);  
-var resultPost = await client.Execute<JsonApiResponse>(reqPost).Result.GetJsonFromContentAsync<JObject>();  
+var reqPost = new ApiRequest("todos/", ApiRequest.HttpMethod.Post, ApiRequest.ApiRequestType.Json);
+
+var reqPostBody = new JObject()
+{
+    ["title"] = "minimalApi",
+    ["body"] = "MinimalApiTest",
+    ["userId"] = 1 // Example user ID
+};
+
+// Set the JSON body
+reqPost.SetBody(reqPostBody);
+
+JsonApiResponse resultPostResponse = await client.Execute<JsonApiResponse>(reqPost);
+JObject resultPost = await resultPostResponse.GetJsonFromContentAsync<JObject>();
+
 Console.WriteLine($"POST Result:\n{resultPost}");
 ```
 #### PUT Request
 
 Update a resource with PUT:
 ```csharp
-var reqPut = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Put, ApiRequest.ApiRequestType.Json);  
-var reqPutBody = new JObject() { ["title"] = "newerTitle", ["body"] = "Updated the Text of the post.", ["userId"] = resultPost["userId"], ["id"] = resultPost["id"] };  
-reqPut.SetUriParameters(new object[] { resultPost["id"] });  
-reqPut.SetBody(reqPutBody);  
-var resultPut = await client.Execute<JsonApiResponse>(reqPut).Result.GetJsonFromContentAsync<JArray>();  
+var reqPut = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Put, ApiRequest.ApiRequestType.Json);
+
+var reqPutBody = new JObject()
+{
+    ["title"] = "newerTitle",
+    ["body"] = "Updated the Text of the post.",
+    ["userId"] = resultPost["userId"], // Use ID from POST result
+    ["id"] = resultPost["id"] // Use ID from POST result
+};
+
+// Set the URI parameter for the specific resource ID
+reqPut.SetUriParameters(new object[] { resultPost["id"] });
+// Set the updated JSON body
+reqPut.SetBody(reqPutBody);
+
+// Note: jsonplaceholder might return an array for PUT, adjust deserialization if needed
+JsonApiResponse resultPutResponse = await client.Execute<JsonApiResponse>(reqPut);
+JObject resultPut = await resultPutResponse.GetJsonFromContentAsync<JObject>(); // Assuming it returns an object
+
 Console.WriteLine($"PUT Result:\n{resultPut}");
 ```
 #### PATCH Request
 
 Partially update a resource with PATCH:
 ```csharp
-var reqPatch = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Patch, ApiRequest.ApiRequestType.Json);  
-var reqPatchBody = new JObject() { ["title"] = "patchedTitle" };  
-reqPatch.SetUriParameters(new object[] { resultPut["id"] });  
-reqPatch.SetBody(reqPatchBody);  
-var resultPatch = await client.Execute<JsonApiResponse>(reqPatch).Result.GetJsonFromContentAsync<JObject>();  
+var reqPatch = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Patch, ApiRequest.ApiRequestType.Json);
+
+var reqPatchBody = new JObject() { ["title"] = "patchedTitle" };
+
+// Set the URI parameter for the specific resource ID
+reqPatch.SetUriParameters(new object[] { resultPut["id"] }); // Use ID from PUT result
+// Set the partial JSON body
+reqPatch.SetBody(reqPatchBody);
+
+JsonApiResponse resultPatchResponse = await client.Execute<JsonApiResponse>(reqPatch);
+JObject resultPatch = await resultPatchResponse.GetJsonFromContentAsync<JObject>();
+
 Console.WriteLine($"PATCH Result:\n{resultPatch}");
 ```
 #### DELETE Request
 
 Delete a specific resource using DELETE:
 ```csharp
-var reqDelete = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Delete, ApiRequest.ApiRequestType.Json);  
-reqDelete.SetUriParameters(new object[] { resultPatch["id"] });  
-var resultDelete = await client.Execute<JsonApiResponse>(reqDelete).Result.GetJsonFromContentAsync<JObject>();  
-Console.WriteLine(resultDelete);
+var reqDelete = new ApiRequest("todos/{0}", ApiRequest.HttpMethod.Delete, ApiRequest.ApiRequestType.Json);
+
+// Set the URI parameter for the specific resource ID
+reqDelete.SetUriParameters(new object[] { resultPatch["id"] }); // Use ID from PATCH result
+
+ApiResponse resultDeleteResponse = await client.Execute<ApiResponse>(reqDelete); // DELETE might return no content
+
+// Check status code or content if expected
+Console.WriteLine($"DELETE Status Code: {resultDeleteResponse.StatusCode}");
 ```
 #### Image Request
 
@@ -124,27 +190,92 @@ imageReq.SetUriParameters(new object[] { 35 });
 var imageResult = await client.Execute<ImageResponse>(imageReq).Result.GetImage();
 imageResult.Save("result.png");
 ```
+### 4. Adding Custom Headers
+You can add custom headers to any request:
+```csharp
+var requestWithHeader = new ApiRequest("some/endpoint", ApiRequest.HttpMethod.Get, ApiRequest.ApiRequestType.Json);
+requestWithHeader.AddRequestHeader("X-Custom-Header", "SomeValue");
+```
 ## Class Overview
 
+### ApiClient
+
+The main class for sending HTTP requests.
+
+* Manages the base URL and the internal `System.Net.HttpClient`.
+
+* Handles authentication if enabled.
+
+* Provides the `Execute<TResult>(ApiRequest request)` method to send requests asynchronously.
+
+* Exposes `RequestSend` and `ResponseRecieved` events.
+
+* Implements `IDisposable` to properly dispose the internal `HttpClient`.
+
 ### ApiRequest
-Handles HTTP requests and includes methods to set headers, body content, and URI parameters. Supports different request types and HTTP methods.
+
+Represents an individual API request.
+
+* Defines the `HttpMethod` enum (Get, Post, Put, Patch, Delete, Options, Head).
+
+* Defines the `ApiRequestType` enum (PlainText, Json, Xml, FormData, MultiPartFormData, Binary, ImagePng, ImageJpeg, HTML).
+
+* Uses `WILDCARD_START = "{"` and `WILDCARD_END = "}"` for dynamic URI parameters.
+
+* Properties for `Endpoint`, `Method`, `RequestType`, `Headers`, `Body`, and `Parameters`.
+
+* Methods to `AddRequestHeader`, `SetUriParameters`, and `SetBody` (for `JObject` or string).
+
+* `SetBody` throws an `ArgumentException` if used with HTTP methods that do not support a body (like GET).
 
 ### ApiResponse, JsonApiResponse & ImageResponse
-Every Response inherits from ApiResponse. Currently there are three responses defined:
-1.  `ApiResponse` providing basic methods like `GetContentAsStringAsync()`.
-2. `JsonApiResponse` specifically providing JSON deserialization to the specified data type.
-3. `ImageResponse` specifically providing Image deserialization.
+
+Base and derived classes for handling API responses.
+
+* **`ApiResponse`**: The base class for all responses.
+
+  * Contains the `HttpStatusCodes` enum with standard HTTP status codes.
+
+  * Stores the `StatusCode` and the response content as a `Stream`.
+
+  * Provides `GetContentAsStream<T>()` to get the content as a specified stream type.
+
+  * Provides `GetContentAsStringAsync()` to read the content as a UTF-8 string.
+
+  * Throws `InvalidOperationException` if the content stream is not initialized when reading.
+
+* **`JsonApiResponse`**: Inherits from `ApiResponse` for JSON responses.
+
+  * Provides `GetJsonFromContentAsync<T>()` to deserialize the JSON content to an object of type `T`.
+
+  * Throws an `Exception` if deserialization fails, wrapping the inner exception.
+
+* **`ImageResponse`**: Inherits from `ApiResponse` for image responses.
+
+  * Provides `GetImage()` to retrieve the image content as a `System.Drawing.Image` object.
 
 ### ApiAuthentication
-Manages API authentication and currently supports Basic and Bearer token authentication types.
+
+Manages API authentication details.
+
+* Contains the `AUTHORIZATION_HEADER_KEY = "Authorization"` constant.
+
+* Holds an `ApiAuthenticationHeader` instance.
+
+* Builds the final authorization header string (`AuthHeader`) based on the authentication type and token/credentials.
+
+### ApiAuthenticationHeader
+
+Represents the data needed to build an authentication header.
+
+* Defines the `PredefinedAuthenticationTypes` enum (Basic, Bearer).
+
+* Stores the `AuthenticationType` (string) and `TokenOrCredentials` (string).
+
+* Has constructors to initialize with a string type or a `PredefinedAuthenticationTypes` enum value.
 
 ### Events
-- `RequestSendEventArgs` is used to handle request-sending events.
-- `ResponseRecievedEventArgs` is used to handle response-receiving events.
 
-## Error Handling
+* `RequestSendEventArgs`: Used for the `ApiClient.RequestSend` event. Contains the `SentRequest` (`ApiRequest`) and the `RequestedAt` timestamp.
 
-The client includes basic error handling, such as:
-- **Unsupported Methods**: Throws an `ArgumentException` if body content is set for methods that don’t support it (e.g., GET).
-- **Deserialization Errors**: Wraps deserialization errors in an exception for easier debugging.
-
+* `ResponseRecievedEventArgs`: Used for the `ApiClient.ResponseRecieved` event. Contains the `ReceivedResponse` (`ApiResponse`) and the `ResponsedAt` timestamp.

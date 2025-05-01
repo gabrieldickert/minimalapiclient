@@ -1,10 +1,17 @@
-﻿namespace MinimalApiClient.Http.Api
+﻿using System;
+
+namespace MinimalApiClient.Http.Api
 {
     /// <summary>
     /// Event arguments for a response-received event, containing the details of the received API response.
     /// </summary>
     public class ResponseRecievedEventArgs
     {
+        /// <summary>
+        ///  The Timestamp when the Response came in.
+        /// </summary>
+        public DateTime ResponsedAt { get; set; }
+
         /// <summary>
         /// The API response that was received.
         /// </summary>
@@ -17,6 +24,8 @@
         public ResponseRecievedEventArgs(ApiResponse response)
         {
             ReceivedResponse = response;
+
+            ResponsedAt = DateTime.Now;
         }
     }
 }

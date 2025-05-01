@@ -7,6 +7,12 @@ namespace MinimalApiClient.Http.Api
     /// </summary>
     public class RequestSendEventArgs : EventArgs
     {
+
+        /// <summary>
+        /// The Timestamp when the Request has been requested.
+        /// </summary>
+        public DateTime RequestedAt { get; set; }
+
         /// <summary>
         /// The API request that was sent.
         /// </summary>
@@ -19,6 +25,8 @@ namespace MinimalApiClient.Http.Api
         public RequestSendEventArgs(ApiRequest req)
         {
             SentRequest = req;
+
+            RequestedAt = DateTime.Now;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using static MinimalApiClient.Http.Api.ApiAuthenticationHeader;
 
 namespace MinimalApiClient.Http.Api
 {
@@ -10,47 +11,28 @@ namespace MinimalApiClient.Http.Api
     public class ApiAuthentication
     {
         /// <summary>
-        /// Defines supported authentication types: Basic and Bearer.
+        /// Defined Key for HTTP-Header.
         /// </summary>
-        public enum AuthenticationTypes
-        {
-            Basic,
-            Bearer,
-        }
+        public const string AUTHORIZATION_HEADER_KEY = "Authorization";
 
         /// <summary>
-        /// Maps authentication types to their respective header formats.
+        ///  Private access to the authentifcation header data.
         /// </summary>
-        private static readonly Dictionary<AuthenticationTypes, string> AuthenticationHeaders = new Dictionary<AuthenticationTypes, string>()
-        {
-            { AuthenticationTypes.Basic, "Basic {0}" },
-            { AuthenticationTypes.Bearer, "Bearer {0}" },
-        };
+        private ApiAuthenticationHeader _authorizationHeader;
 
         /// <summary>
-        /// The selected authentication type (Basic or Bearer).
-        /// </summary>
-        public AuthenticationTypes AuthenticationType { get; set; }
-
-        /// <summary>
-        /// Stores the provided token or credentials used in the authentication header.
-        /// </summary>
-        public string TokenOrCredentials { get; private set; }
-
-        /// <summary>
-        /// Stores the generated authorization header as a key-value pair.
+        /// Holds the builded AuthorizationHeader.
         /// </summary>
         public KeyValuePair<string, string> AuthHeader { get; private set; }
 
         /// <summary>
-        /// Constructor that initializes the ApiAuthentication with specified type and token/credentials.
+        /// Creates a new Api Authentifcation Header.
         /// </summary>
-        /// <param name="authenticationType">Type of authentication (Basic or Bearer).</param>
-        /// <param name="tokenOrCredentials">Token or credentials for the authentication header.</param>
-        public ApiAuthentication(AuthenticationTypes authenticationType, string tokenOrCredentials)
+        /// <param name="authorizationHeader">The autohrization Header.</param>
+        public ApiAuthentication(ApiAuthenticationHeader authorizationHeader)
         {
-            AuthenticationType = authenticationType;
-            TokenOrCredentials = tokenOrCredentials;
+            _authorizationHeader = authorizationHeader;
+
             BuildAuthHeader();
         }
 
@@ -60,7 +42,7 @@ namespace MinimalApiClient.Http.Api
         private void BuildAuthHeader()
         {
             // Get the format for the selected authentication type (e.g., "Bearer {0}")
-            string authKeyPart = AuthenticationHeaders[AuthenticationType];
+            string authKeyPart = string.Join("", _authorizationHeader.AuthenticationType, "{0}");
 
             // Define a regular expression to find placeholders (e.g., "{0}") in the format string.
             Regex regex = new Regex(@"\{([^}]+)\}");
@@ -71,10 +53,10 @@ namespace MinimalApiClient.Http.Api
             if (containsPlaceholders)
             {
                 // Replace placeholders with the token or credentials.
-                var finalHeader = regex.Replace(authKeyPart, match => TokenOrCredentials);
+                var finalHeaderValue = regex.Replace(authKeyPart, match => _authorizationHeader.TokenOrCredentials);
 
                 // Store the completed authorization header.
-                AuthHeader = new KeyValuePair<string, string>("Authorization", finalHeader);
+                AuthHeader = new KeyValuePair<string, string>(AUTHORIZATION_HEADER_KEY, finalHeaderValue);
             }
         }
     }

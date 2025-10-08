@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,6 +12,12 @@ namespace MinimalApiClient.Http.Api
     public class ApiClient : IDisposable
 
     {
+        #region Constants
+
+        public const int DEFAULT_TIMEOUT_IN_SECONDS = 60;
+
+        #endregion Constants
+
         #region Events
 
         /// <summary>
@@ -36,6 +43,14 @@ namespace MinimalApiClient.Http.Api
         /// The internal used System.Net.HttpClient.
         /// </summary>
         private HttpClient _client;
+
+        /// <summary>
+        /// Returns the underlying HttpClient for additional Configuration.
+        /// </summary>
+        public HttpClient Client
+        {
+            get { return _client; }
+        }
 
         /// <summary>
         /// Sets if the Client needs authentification for every request (e.g. Basic or Bearer)
@@ -71,13 +86,14 @@ namespace MinimalApiClient.Http.Api
         /// <param name="baseUrl">The base Url of the Client.</param>
         /// <param name="authentification">The Authentification Style.</param>
         /// <exception cref="ArgumentNullException">Authentification is null.</exception>
-        public ApiClient(string baseUrl, ApiAuthentication authentification)
+        public ApiClient(string baseUrl, ApiAuthentication authentification, int timeoutInSeconds = DEFAULT_TIMEOUT_IN_SECONDS)
         {
             BaseUrl = baseUrl;
 
             _client = new HttpClient
             {
-                BaseAddress = new Uri(baseUrl)
+                BaseAddress = new Uri(baseUrl),
+                Timeout = TimeSpan.FromSeconds(timeoutInSeconds)
             };
 
             if (authentification != null)
@@ -248,6 +264,14 @@ namespace MinimalApiClient.Http.Api
 
                     switch (responseMessage.StatusCode)
                     {
+                        case System.Net.HttpStatusCode.Continue:
+                            apiResponseStatusCode = ApiResponse.HttpStatusCodes.Continue;
+                            break;
+
+                        case System.Net.HttpStatusCode.SwitchingProtocols:
+                            apiResponseStatusCode = ApiResponse.HttpStatusCodes.SwitchingProtocols;
+                            break;
+
                         case System.Net.HttpStatusCode.OK:
 
                             apiResponseStatusCode = ApiResponse.HttpStatusCodes.Ok;
@@ -307,7 +331,13 @@ namespace MinimalApiClient.Http.Api
                             apiResponseStatusCode = ApiResponse.HttpStatusCodes.RequestTimeout;
 
                             break;
+#if NET7_0_OR_GREATER
+                        case System.Net.HttpStatusCode.TooManyRequests:
 
+                            apiResponseStatusCode = ApiResponse.HttpStatusCodes.TooManyRequests;
+
+                            break;
+#endif
                         case System.Net.HttpStatusCode.InternalServerError:
 
                             apiResponseStatusCode = ApiResponse.HttpStatusCodes.InternalServerError;
@@ -364,6 +394,8 @@ namespace MinimalApiClient.Http.Api
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"Error executing API request: {ex.Message}");
+
                 return null;
             }
         }

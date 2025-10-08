@@ -13,8 +13,11 @@ namespace MinimalApiClient.Http.Api
         /// <summary>
         /// Enum for standard HTTP status codes, covering common response statuses.
         /// </summary>
-        public enum HttpStatusCodes
+        [Flags]
+        public enum HttpStatusCodes : int
         {
+            Continue = 100,
+            SwitchingProtocols = 101,
             Ok = 200,
             Created = 201,
             Accepted = 202,
